@@ -9,6 +9,7 @@ import { ConfiguracoesPage } from '@/features/settings/ConfiguracoesPage'
 import { HistoricoPage } from '@/features/history/HistoricoPage'
 import { RotacaoPage } from '@/features/rotation/RotacaoPage'
 import { TutorialPage } from '@/features/tutorial/TutorialPage'
+import { StartupOverlay } from '@/components/layout/StartupOverlay'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
             </Routes>
           </BrowserRouter>
           <IntroOverlay />
+          <StartupOverlay />
           <WindowControls />
         </UIProvider>
       </ToastProvider>

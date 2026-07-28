@@ -19,6 +19,15 @@ export class ApiError extends Error {
   }
 }
 
+export async function waitForApiHealth(maxMs = 90000, intervalMs = 350): Promise<boolean> {
+  const start = Date.now()
+  while (Date.now() - start < maxMs) {
+    if (await checkApiHealth()) return true
+    await new Promise((resolve) => setTimeout(resolve, intervalMs))
+  }
+  return false
+}
+
 interface ApiEstadoRaw {
   employees: Employee[]
   schedule: {

@@ -96,10 +96,8 @@ async function createWindow() {
 }
 
 async function bootstrap() {
-  await createWindow()
-
   if (!isDev && bundledApiExists()) {
-    startBundledApi().catch((err) => {
+    void startBundledApi().catch((err) => {
       const configPath = getConfigHintPath()
       dialog.showErrorBox(
         'Escala Lixo — API não iniciou',
@@ -109,6 +107,8 @@ async function bootstrap() {
       )
     })
   }
+
+  await createWindow()
 }
 
 app.whenReady().then(() => {

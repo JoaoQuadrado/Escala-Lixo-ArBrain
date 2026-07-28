@@ -9,7 +9,6 @@ import {
 } from 'react'
 import type { AppState } from '@/types'
 import {
-  checkApiHealth,
   createColaboradorApi,
   deleteColaboradorApi,
   discordDiaApi,
@@ -19,6 +18,7 @@ import {
   moveEmployeeApi,
   swapEmployeesApi,
   updateColaboradorApi,
+  waitForApiHealth,
 } from '@/services/api'
 import type { Employee, ScheduleColumn } from '@/types'
 
@@ -60,7 +60,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     async function init() {
-      const online = await checkApiHealth()
+      const online = await waitForApiHealth()
       if (cancelled) return
 
       setApiConnected(online)
