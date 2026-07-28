@@ -64,7 +64,7 @@ if (Test-Path $devConfig) {
 Write-Host '>> Build frontend + instalador Electron...' -ForegroundColor Cyan
 Clear-ReleaseDir
 
-Write-Host '>> Gerando icon.ico...' -ForegroundColor DarkGray
+Write-Host '>> Sincronizando icon.ico (public -> build)...' -ForegroundColor DarkGray
 Push-Location $AppDir
 try {
   npm run icons:generate
