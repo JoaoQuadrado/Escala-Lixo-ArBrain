@@ -104,16 +104,19 @@ export function KanbanBoard() {
     toDay: ScheduleColumn,
     toIndex?: number,
   ) => {
-    let next = await moveEmployee(employeeId, fromDay, toDay, toIndex)
+    let state = await moveEmployee(employeeId, fromDay, toDay, toIndex)
+    let schedule = state.schedules.find((s) => s.id === state.activeScheduleId)
+    if (!schedule) return
 
     if (isWeekday(fromDay)) {
-      await balanceWeekdayDupla(next, fromDay, async (id, from, to) => {
-        next = await moveEmployee(id, from, to)
-        return next
+      await balanceWeekdayDupla(schedule, fromDay, async (id, from, to) => {
+        state = await moveEmployee(id, from, to)
+        const updated = state.schedules.find((s) => s.id === state.activeScheduleId)
+        if (!updated) throw new Error('Escala ativa não encontrada')
+        schedule = updated
+        return updated
       })
     }
-
-    return next
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {

@@ -7,9 +7,13 @@ const {
   stopBundledApi,
   getConfigHintPath,
 } = require('./api-manager.cjs')
+const { createStaticServer } = require('./static-server.cjs')
 
 const isDev = !app.isPackaged
 const DEV_PORTS = [5173, 5174, 5175]
+
+/** @type {import('http').Server | null} */
+let staticServer = null
 
 function resolveIconPath() {
   const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.png'
@@ -76,7 +80,13 @@ async function createWindow() {
       console.error(`Falha ao carregar ${devUrl}. Execute "npm run dev:full" ou "Iniciar-EscalaLixo.bat".`)
     })
   } else {
-    await win.loadFile(path.join(__dirname, '../dist/index.html'))
+    const distDir = path.join(__dirname, '../dist')
+    const { server, url } = await createStaticServer(distDir)
+    staticServer = server
+    await win.loadURL(url)
+    win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+      console.error(`Falha ao carregar ${validatedURL}: ${errorCode} ${errorDescription}`)
+    })
   }
 
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -86,10 +96,10 @@ async function createWindow() {
 }
 
 async function bootstrap() {
+  await createWindow()
+
   if (!isDev && bundledApiExists()) {
-    try {
-      await startBundledApi()
-    } catch (err) {
+    startBundledApi().catch((err) => {
       const configPath = getConfigHintPath()
       dialog.showErrorBox(
         'Escala Lixo — API não iniciou',
@@ -97,12 +107,8 @@ async function bootstrap() {
           `Verifique a connection string do Supabase em:\n${configPath}\n\n` +
           'Edite o ficheiro, guarde e abra o app novamente.',
       )
-      app.quit()
-      return
-    }
+    })
   }
-
-  await createWindow()
 }
 
 app.whenReady().then(() => {
@@ -125,6 +131,10 @@ app.whenReady().then(() => {
 
 app.on('before-quit', () => {
   stopBundledApi()
+  if (staticServer) {
+    staticServer.close()
+    staticServer = null
+  }
 })
 
 app.on('window-all-closed', () => {

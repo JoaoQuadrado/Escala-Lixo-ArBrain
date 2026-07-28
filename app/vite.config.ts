@@ -13,6 +13,9 @@ export default defineConfig({
   },
     server: {
       port: 5173,
+      watch: {
+        ignored: ['**/release/**', '**/api-bundle/**', '**/dist/**'],
+      },
       proxy: {
         '/api': {
           target: 'http://localhost:5000',

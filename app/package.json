@@ -16,6 +16,7 @@
     "electron:dev": "concurrently -k -n web,electron -c blue,magenta \"npm run dev:web\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
     "electron:full": "concurrently -k -n api,web,electron -c magenta,blue,magenta \"npm run api\" \"npm run dev:web\" \"wait-on http://127.0.0.1:5000/api/health http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
     "postinstall": "node node_modules/electron/install.js",
+    "icons:generate": "node scripts/generate-icons.mjs",
     "electron:build": "powershell -ExecutionPolicy Bypass -File ../scripts/build-installer.ps1",
     "electron:build:quick": "npm run build && electron-builder --win",
     "electron:preview": "npm run build && cross-env NODE_ENV=production electron .",
@@ -36,12 +37,16 @@
       {
         "from": "api-bundle",
         "to": "api",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
       "target": "nsis",
-      "icon": "public/icon.ico"
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false,
+      "signExecutable": false
     },
     "nsis": {
       "oneClick": false,
@@ -88,6 +93,8 @@
     "electron": "^43.2.0",
     "electron-builder": "^26.15.3",
     "oxlint": "^1.71.0",
+    "png-to-ico": "^3.0.2",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
