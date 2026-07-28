@@ -1,7 +1,7 @@
-# Legacy desktop app (artefactos de build)
+# Legacy desktop app (WinForms — removido)
 /EscalaLixo/
 
-# Build
+# Build .NET
 [Bb]in/
 [Oo]bj/
 [Dd]ebug/
@@ -33,3 +33,6 @@ app/node_modules/
 app/dist/
 app/release/
 app/api-bundle/
+app/release/builder-debug.yml
+app/release/win-unpacked/
+Thumbs.db
