@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=aws-0-sa-east-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.ntgtylgssnlizhlebpyg;Password=COLOQUE_SUA_SENHA_AQUI;SSL Mode=Require;Trust Server Certificate=true"
+  }
+}

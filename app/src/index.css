@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #111827;
+  --color-bg-panel: #1f2937;
+  --color-bg-panel-hover: #374151;
+  --color-accent: #ffc300;
+  --color-accent-hover: #e6b000;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9ca3af;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-glass: rgba(31, 41, 55, 0.72);
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.scrollbar-discreet {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.scrollbar-discreet:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.scrollbar-discreet::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.scrollbar-discreet:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.scrollbar-discreet:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.glass-panel {
+  background: var(--color-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+}
+
+.gradient-bg {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255, 195, 0, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+    var(--color-bg-primary);
+}
+
+.drag-overlay {
+  cursor: grabbing !important;
+  transform: rotate(2deg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+select option {
+  background-color: var(--color-bg-panel);
+  color: var(--color-text-primary);
+}
