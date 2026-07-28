@@ -24,6 +24,46 @@ function bundledApiExists() {
   return fs.existsSync(resolveBundledApiExe())
 }
 
+const INVALID_CONNECTION_MARKERS = [
+  '[YOUR-PASSWORD]',
+  'YOUR-PASSWORD',
+  'SUA_SENHA',
+  'SEU_HOST',
+  'SEU_PROJETO',
+  'senha_aqui',
+  'COLOQUE_SUA_SENHA',
+]
+
+function readConnectionString(configPath) {
+  try {
+    const raw = fs.readFileSync(configPath, 'utf8')
+    const parsed = JSON.parse(raw)
+    return parsed?.ConnectionStrings?.DefaultConnection ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function isValidBundledConnection(connectionString) {
+  if (!connectionString || typeof connectionString !== 'string') return false
+  const normalized = connectionString.toLowerCase()
+  return !INVALID_CONNECTION_MARKERS.some((marker) =>
+    normalized.includes(marker.toLowerCase()),
+  )
+}
+
+function resolveBundledConfigSource() {
+  const bundled = path.join(resolveBundledApiDir(), 'appsettings.json')
+  if (fs.existsSync(bundled) && isValidBundledConnection(readConnectionString(bundled))) {
+    return bundled
+  }
+
+  const example = path.join(resolveBundledApiDir(), 'appsettings.example.json')
+  if (fs.existsSync(example)) return example
+
+  return bundled
+}
+
 function ensureAppDataConfig() {
   let configRoot
   if (process.platform === 'win32') {
@@ -38,21 +78,16 @@ function ensureAppDataConfig() {
 
   const appDir = path.join(configRoot, 'EscalaLixo')
   const configPath = path.join(appDir, 'appsettings.json')
+  const bundledSource = resolveBundledConfigSource()
 
-  if (!fs.existsSync(configPath)) {
-    fs.mkdirSync(appDir, { recursive: true })
+  fs.mkdirSync(appDir, { recursive: true })
 
-    const candidates = [
-      path.join(resolveBundledApiDir(), 'appsettings.example.json'),
-      path.join(resolveBundledApiDir(), 'appsettings.json'),
-    ]
+  const shouldSeed =
+    !fs.existsSync(configPath) ||
+    !isValidBundledConnection(readConnectionString(configPath))
 
-    for (const src of candidates) {
-      if (fs.existsSync(src)) {
-        fs.copyFileSync(src, configPath)
-        break
-      }
-    }
+  if (shouldSeed && bundledSource && fs.existsSync(bundledSource)) {
+    fs.copyFileSync(bundledSource, configPath)
   }
 
   return configPath
@@ -93,7 +128,17 @@ async function startBundledApi() {
     throw new Error(`API não encontrada em ${exe}`)
   }
 
-  ensureAppDataConfig()
+  const configPath = ensureAppDataConfig()
+  const connectionString = configPath ? readConnectionString(configPath) : ''
+  if (!isValidBundledConnection(connectionString)) {
+    throw new Error(
+      'Connection string inválida ou incompleta.\n' +
+        `Edite ${configPath ?? '%APPDATA%\\EscalaLixo\\appsettings.json'} ` +
+        'com os dados do Supabase.',
+    )
+  }
+
+  let recentLogs = ''
 
   apiProcess = spawn(exe, [], {
     cwd: path.dirname(exe),
@@ -106,22 +151,43 @@ async function startBundledApi() {
     stdio: ['ignore', 'pipe', 'pipe'],
   })
 
+  const appendLog = (chunk) => {
+    recentLogs = `${recentLogs}${chunk.toString()}`.slice(-4000)
+  }
+
   apiProcess.stdout?.on('data', (chunk) => {
+    appendLog(chunk)
     console.log(`[API] ${chunk.toString().trim()}`)
   })
 
   apiProcess.stderr?.on('data', (chunk) => {
+    appendLog(chunk)
     console.error(`[API] ${chunk.toString().trim()}`)
   })
 
-  apiProcess.on('exit', (code) => {
-    if (code !== null && code !== 0) {
-      console.error(`[API] encerrou com código ${code}`)
-    }
-    apiProcess = null
+  const exitPromise = new Promise((resolve) => {
+    apiProcess.on('exit', (code) => {
+      if (code !== null && code !== 0) {
+        console.error(`[API] encerrou com código ${code}`)
+      }
+      apiProcess = null
+      resolve(code)
+    })
   })
 
-  await waitForApi()
+  try {
+    await Promise.race([
+      waitForApi(),
+      exitPromise.then((code) => {
+        if (code === null || code === 0) return
+        const detail = recentLogs.trim() || `A API encerrou com código ${code}.`
+        throw new Error(detail)
+      }),
+    ])
+  } catch (err) {
+    stopBundledApi()
+    throw err
+  }
 }
 
 function stopBundledApi() {
